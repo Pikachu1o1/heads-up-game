@@ -32,11 +32,23 @@ h1 {
 
 .top-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-group label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
 }
 
 select, button {

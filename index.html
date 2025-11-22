@@ -23,7 +23,7 @@
     <div class="subtitle">Tilt your phone to play! Down = Correct, Up = Skip</div>
 
     <div class="top-bar">
-      <div>
+      <div class="settings-group">
         <label for="category">Category:</label>
         <select id="category">
           <option value="animals">Animals</option>
@@ -31,6 +31,25 @@
           <option value="food">Food</option>
         </select>
       </div>
+
+      <div class="settings-group">
+        <label for="timer">Timer:</label>
+        <select id="timer">
+          <option value="30">30 seconds</option>
+          <option value="60" selected>60 seconds</option>
+          <option value="120">2 minutes</option>
+        </select>
+      </div>
+
+      <div class="settings-group">
+        <label for="difficulty">Difficulty:</label>
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
       <button id="startBtn">Start</button>
     </div>
 

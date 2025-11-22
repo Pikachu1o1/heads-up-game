@@ -1,21 +1,38 @@
 const WORDS = {
-  animals: ["dog", "cat", "elephant", "lion", "giraffe", "panda"],
-  movies: ["Frozen", "Avatar", "Titanic", "Inception", "Batman"],
-  food: ["pizza", "sushi", "burger", "taco", "ice cream", "noodles"]
+  animals: {
+    easy: ["dog", "cat", "bird", "fish", "cow", "pig"],
+    medium: ["elephant", "lion", "giraffe", "panda", "zebra", "monkey"],
+    hard: ["platypus", "armadillo", "narwhal", "axolotl", "capybara", "lemur"]
+  },
+  movies: {
+    easy: ["Frozen", "Shrek", "Cars", "Up", "Brave", "Moana"],
+    medium: ["Avatar", "Titanic", "Inception", "Batman", "Joker", "Gladiator"],
+    hard: ["Interstellar", "Parasite", "Memento", "Arrival", "Blade Runner", "Spirited Away"]
+  },
+  food: {
+    easy: ["pizza", "burger", "fries", "cookie", "cake", "bread"],
+    medium: ["sushi", "taco", "pasta", "noodles", "curry", "sandwich"],
+    hard: ["carpaccio", "pho", "paella", "risotto", "tzatziki", "bouillabaisse"]
+  }
 };
 
 const categorySelect = document.getElementById("category");
+const timerSelect = document.getElementById("timer");
+const difficultySelect = document.getElementById("difficulty");
 const startBtn = document.getElementById("startBtn");
 const wordText = document.getElementById("wordText");
 const correctBtn = document.getElementById("correctBtn");
 const skipBtn = document.getElementById("skipBtn");
 const scoreDisplay = document.getElementById("scoreDisplay");
+const timeDisplay = document.getElementById("timeDisplay");
 
 let wordsForRound = [];
 let currentIndex = 0;
 let score = 0;
 let gameActive = false;
 let lastTilt = 0;
+let timeRemaining = 0;
+let timerInterval = null;
 const TILT_THRESHOLD = 30; // degrees needed to trigger action
 const TILT_COOLDOWN = 800; // ms between tilt actions
 
@@ -28,10 +45,18 @@ function shuffle(array) {
 
 async function startRound() {
   const category = categorySelect.value;
-  wordsForRound = shuffle(WORDS[category].slice());
+  const difficulty = difficultySelect.value;
+  const timerDuration = parseInt(timerSelect.value);
+
+  // Get words based on category and difficulty
+  wordsForRound = shuffle(WORDS[category][difficulty].slice());
   currentIndex = 0;
   score = 0;
   scoreDisplay.textContent = score;
+
+  // Initialize timer
+  timeRemaining = timerDuration;
+  updateTimeDisplay();
 
   // Request motion permission on iOS 13+
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -49,9 +74,15 @@ async function startRound() {
   gameActive = true;
   showNextWord();
 
+  // Start timer countdown
+  timerInterval = setInterval(updateTimer, 1000);
+
   correctBtn.disabled = false;
   skipBtn.disabled = false;
   startBtn.disabled = true;
+  categorySelect.disabled = true;
+  timerSelect.disabled = true;
+  difficultySelect.disabled = true;
 }
 
 function showNextWord() {
@@ -70,6 +101,35 @@ function markCorrect() {
 
 function skipWord() {
   showNextWord();
+}
+
+function updateTimer() {
+  timeRemaining--;
+  updateTimeDisplay();
+
+  if (timeRemaining <= 0) {
+    endGame();
+  }
+}
+
+function updateTimeDisplay() {
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
+  timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function endGame() {
+  gameActive = false;
+  clearInterval(timerInterval);
+
+  correctBtn.disabled = true;
+  skipBtn.disabled = true;
+  startBtn.disabled = false;
+  categorySelect.disabled = false;
+  timerSelect.disabled = false;
+  difficultySelect.disabled = false;
+
+  wordText.textContent = `Game Over! Final Score: ${score}`;
 }
 
 // Handle device orientation for tilt controls
