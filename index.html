@@ -2,13 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Heads Up – Basic Layout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Heads Up Game</title>
+
+  <!-- PWA Meta Tags -->
+  <meta name="description" content="A fun party game where you guess words on your forehead" />
+  <meta name="theme-color" content="#2962ff" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Heads Up" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <h1>Heads Up</h1>
-    <div class="subtitle">Basic layout – no AI, just a simple word cycle</div>
+    <div class="subtitle">Tilt your phone to play! Down = Correct, Up = Skip</div>
 
     <div class="top-bar">
       <div>
@@ -38,5 +50,14 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch(err => console.log('Service Worker registration failed:', err));
+    }
+  </script>
 </body>
 </html>
