@@ -140,44 +140,62 @@ function endGame() {
 // Handle device orientation for tilt controls
 function handleOrientation(event) {
   const beta = event.beta; // Front-to-back tilt (-180 to 180)
+  const gamma = event.gamma; // Left-to-right tilt
 
-  // Show debug info
-  debugInfo.textContent = `Tilt: ${Math.round(beta)}°`;
-
-  if (!gameActive) return;
+  if (!gameActive) {
+    debugInfo.textContent = `Tilt: ${Math.round(beta)}°`;
+    return;
+  }
 
   const now = Date.now();
 
-  // Set baseline on first reading after game starts
+  // Only work when phone is roughly horizontal (on forehead position)
+  // Beta should be between -30 and 30 degrees (roughly flat)
+  const isHorizontal = Math.abs(beta) < 30;
+
+  if (!isHorizontal) {
+    // Phone is upright or in weird position - wait for horizontal
+    debugInfo.textContent = `Tilt: ${Math.round(beta)}° - Put phone on forehead!`;
+    baselineOrientation = null; // Reset baseline when not horizontal
+    return;
+  }
+
+  // Set baseline when phone first becomes horizontal
   if (baselineOrientation === null) {
     baselineOrientation = beta;
-    debugInfo.textContent = `Baseline set: ${Math.round(beta)}° - Put phone on forehead!`;
+    debugInfo.textContent = `Ready! Tilt: ${Math.round(beta)}°`;
     return;
   }
 
   // Prevent rapid-fire tilts
-  if (now - lastTilt < TILT_COOLDOWN) return;
+  if (now - lastTilt < TILT_COOLDOWN) {
+    debugInfo.textContent = `Ready! Tilt: ${Math.round(beta)}° (cooldown)`;
+    return;
+  }
 
   // Calculate difference from baseline
   const tiltDiff = beta - baselineOrientation;
 
+  // Show current status
+  debugInfo.textContent = `Tilt: ${Math.round(beta)}° (diff: ${Math.round(tiltDiff)}°)`;
+
   // Tilt forward/down (phone moving toward ground) = Correct
-  // Beta INCREASES when tilting forward
-  if (tiltDiff > TILT_THRESHOLD) {
+  // When on forehead, tilting down makes beta MORE negative
+  if (tiltDiff < -TILT_THRESHOLD) {
     lastTilt = now;
     debugInfo.textContent = `✅ CORRECT! (${Math.round(beta)}°)`;
     markCorrect();
     // Reset baseline after action
-    setTimeout(() => { baselineOrientation = null; }, 500);
+    baselineOrientation = null;
   }
   // Tilt backward/up (phone moving toward sky) = Skip
-  // Beta DECREASES when tilting backward
-  else if (tiltDiff < -TILT_THRESHOLD) {
+  // When on forehead, tilting up makes beta MORE positive
+  else if (tiltDiff > TILT_THRESHOLD) {
     lastTilt = now;
     debugInfo.textContent = `⏭ SKIP! (${Math.round(beta)}°)`;
     skipWord();
     // Reset baseline after action
-    setTimeout(() => { baselineOrientation = null; }, 500);
+    baselineOrientation = null;
   }
 }
 
