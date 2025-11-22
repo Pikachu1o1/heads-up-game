@@ -31,12 +31,12 @@ let wordsForRound = [];
 let currentIndex = 0;
 let score = 0;
 let gameActive = false;
-let lastTilt = 0;
 let timeRemaining = 0;
 let timerInterval = null;
 let baselineOrientation = null; // Store initial phone position
-const TILT_THRESHOLD = 45; // degrees needed to trigger action (increased from 30)
-const TILT_COOLDOWN = 1000; // ms between tilt actions (increased from 800)
+let hasTilted = false; // Track if user has tilted (prevents multiple triggers)
+const TILT_THRESHOLD = 30; // degrees needed to trigger action
+const RETURN_THRESHOLD = 15; // degrees - must return this close to baseline to reset
 
 function shuffle(array) {
   return array
@@ -75,6 +75,7 @@ async function startRound() {
 
   gameActive = true;
   baselineOrientation = null; // Reset baseline - will be set on first orientation event
+  hasTilted = false; // Reset tilt state
   showNextWord();
 
   // Start timer countdown
@@ -124,6 +125,7 @@ function updateTimeDisplay() {
 function endGame() {
   gameActive = false;
   baselineOrientation = null;
+  hasTilted = false;
   clearInterval(timerInterval);
 
   correctBtn.disabled = true;
@@ -146,8 +148,6 @@ function handleOrientation(event) {
     return;
   }
 
-  const now = Date.now();
-
   // Phone on forehead position: screen facing out, phone vertical
   // Beta should be around 60-120 degrees (roughly vertical/upright)
   const isOnForehead = beta >= 60 && beta <= 120;
@@ -156,46 +156,49 @@ function handleOrientation(event) {
     // Phone is flat or upside down - wait for forehead position
     debugInfo.textContent = `Tilt: ${Math.round(beta)}° - Put phone on forehead (upright)!`;
     baselineOrientation = null; // Reset baseline when not in position
+    hasTilted = false;
     return;
   }
 
   // Set baseline when phone first reaches forehead position
   if (baselineOrientation === null) {
     baselineOrientation = beta;
+    hasTilted = false;
     debugInfo.textContent = `Ready! Baseline: ${Math.round(beta)}°`;
-    return;
-  }
-
-  // Prevent rapid-fire tilts
-  if (now - lastTilt < TILT_COOLDOWN) {
-    const tiltDiff = beta - baselineOrientation;
-    debugInfo.textContent = `Ready! ${Math.round(beta)}° (diff: ${Math.round(tiltDiff)}°) - cooldown`;
     return;
   }
 
   // Calculate difference from baseline
   const tiltDiff = beta - baselineOrientation;
 
-  // Show current status
-  debugInfo.textContent = `${Math.round(beta)}° (diff: ${Math.round(tiltDiff)}°) - need ${TILT_THRESHOLD}°`;
+  // If user has already tilted, wait for them to return to baseline
+  if (hasTilted) {
+    // Check if phone has returned close to baseline
+    if (Math.abs(tiltDiff) < RETURN_THRESHOLD) {
+      hasTilted = false;
+      debugInfo.textContent = `Ready! ${Math.round(beta)}° - Returned to baseline`;
+    } else {
+      debugInfo.textContent = `Return to baseline (${Math.round(beta)}°, diff: ${Math.round(tiltDiff)}°)`;
+    }
+    return;
+  }
+
+  // Show current status when ready
+  debugInfo.textContent = `Ready! ${Math.round(beta)}° (diff: ${Math.round(tiltDiff)}°, need ${TILT_THRESHOLD}°)`;
 
   // Tilt DOWN (phone top moving toward ground) = Correct
   // Beta INCREASES when tilting down from forehead position
   if (tiltDiff > TILT_THRESHOLD) {
-    lastTilt = now;
     debugInfo.textContent = `✅ CORRECT! (tilted down ${Math.round(tiltDiff)}°)`;
     markCorrect();
-    // Reset baseline after action
-    baselineOrientation = null;
+    hasTilted = true; // Prevent multiple triggers
   }
   // Tilt UP (phone top moving toward sky) = Skip
   // Beta DECREASES when tilting up from forehead position
   else if (tiltDiff < -TILT_THRESHOLD) {
-    lastTilt = now;
     debugInfo.textContent = `⏭ SKIP! (tilted up ${Math.round(Math.abs(tiltDiff))}°)`;
     skipWord();
-    // Reset baseline after action
-    baselineOrientation = null;
+    hasTilted = true; // Prevent multiple triggers
   }
 }
 
