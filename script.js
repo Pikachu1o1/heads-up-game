@@ -25,6 +25,7 @@ const correctBtn = document.getElementById("correctBtn");
 const skipBtn = document.getElementById("skipBtn");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const timeDisplay = document.getElementById("timeDisplay");
+const debugInfo = document.getElementById("debugInfo");
 
 let wordsForRound = [];
 let currentIndex = 0;
@@ -33,8 +34,9 @@ let gameActive = false;
 let lastTilt = 0;
 let timeRemaining = 0;
 let timerInterval = null;
-const TILT_THRESHOLD = 30; // degrees needed to trigger action
-const TILT_COOLDOWN = 800; // ms between tilt actions
+let baselineOrientation = null; // Store initial phone position
+const TILT_THRESHOLD = 45; // degrees needed to trigger action (increased from 30)
+const TILT_COOLDOWN = 1000; // ms between tilt actions (increased from 800)
 
 function shuffle(array) {
   return array
@@ -72,6 +74,7 @@ async function startRound() {
   }
 
   gameActive = true;
+  baselineOrientation = null; // Reset baseline - will be set on first orientation event
   showNextWord();
 
   // Start timer countdown
@@ -120,6 +123,7 @@ function updateTimeDisplay() {
 
 function endGame() {
   gameActive = false;
+  baselineOrientation = null;
   clearInterval(timerInterval);
 
   correctBtn.disabled = true;
@@ -130,27 +134,50 @@ function endGame() {
   difficultySelect.disabled = false;
 
   wordText.textContent = `Game Over! Final Score: ${score}`;
+  debugInfo.textContent = '';
 }
 
 // Handle device orientation for tilt controls
 function handleOrientation(event) {
+  const beta = event.beta; // Front-to-back tilt (-180 to 180)
+
+  // Show debug info
+  debugInfo.textContent = `Tilt: ${Math.round(beta)}°`;
+
   if (!gameActive) return;
 
-  const beta = event.beta; // Front-to-back tilt (-180 to 180)
   const now = Date.now();
+
+  // Set baseline on first reading after game starts
+  if (baselineOrientation === null) {
+    baselineOrientation = beta;
+    debugInfo.textContent = `Baseline set: ${Math.round(beta)}° - Put phone on forehead!`;
+    return;
+  }
 
   // Prevent rapid-fire tilts
   if (now - lastTilt < TILT_COOLDOWN) return;
 
-  // Tilt forward (phone down toward ground) = Correct
-  if (beta > 90 + TILT_THRESHOLD) {
+  // Calculate difference from baseline
+  const tiltDiff = beta - baselineOrientation;
+
+  // Tilt forward/down (phone moving toward ground) = Correct
+  // Beta INCREASES when tilting forward
+  if (tiltDiff > TILT_THRESHOLD) {
     lastTilt = now;
+    debugInfo.textContent = `✅ CORRECT! (${Math.round(beta)}°)`;
     markCorrect();
+    // Reset baseline after action
+    setTimeout(() => { baselineOrientation = null; }, 500);
   }
-  // Tilt backward (phone up toward sky) = Skip
-  else if (beta < 90 - TILT_THRESHOLD) {
+  // Tilt backward/up (phone moving toward sky) = Skip
+  // Beta DECREASES when tilting backward
+  else if (tiltDiff < -TILT_THRESHOLD) {
     lastTilt = now;
+    debugInfo.textContent = `⏭ SKIP! (${Math.round(beta)}°)`;
     skipWord();
+    // Reset baseline after action
+    setTimeout(() => { baselineOrientation = null; }, 500);
   }
 }
 
