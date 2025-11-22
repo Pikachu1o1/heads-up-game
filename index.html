@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Heads Up – Basic Layout</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>Heads Up</h1>
+    <div class="subtitle">Basic layout – no AI, just a simple word cycle</div>
+
+    <div class="top-bar">
+      <div>
+        <label for="category">Category:</label>
+        <select id="category">
+          <option value="animals">Animals</option>
+          <option value="movies">Movies</option>
+          <option value="food">Food</option>
+        </select>
+      </div>
+      <button id="startBtn">Start</button>
+    </div>
+
+    <div id="wordCard" class="card">
+      <span id="wordText">Press "Start" to begin</span>
+    </div>
+
+    <div class="buttons">
+      <button id="correctBtn" class="round" disabled>✅ Correct</button>
+      <button id="skipBtn" class="round" disabled>⏭ Skip</button>
+    </div>
+
+    <div class="info-row">
+      <span>Time: <span id="timeDisplay">—</span></span>
+      <span>Score: <span id="scoreDisplay">0</span></span>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
