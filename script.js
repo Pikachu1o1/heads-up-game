@@ -35,8 +35,10 @@ let timeRemaining = 0;
 let timerInterval = null;
 let baselineOrientation = null; // Store initial phone position
 let hasTilted = false; // Track if user has tilted (prevents multiple triggers)
-const TILT_THRESHOLD = 30; // degrees needed to trigger action
+let lastActionTime = 0; // Timestamp of last action (correct/skip)
+const TILT_THRESHOLD = 50; // degrees needed to trigger action
 const RETURN_THRESHOLD = 15; // degrees - must return this close to baseline to reset
+const ACTION_COOLDOWN = 3000; // 3 seconds in milliseconds
 
 function shuffle(array) {
   return array
@@ -76,6 +78,7 @@ async function startRound() {
   gameActive = true;
   baselineOrientation = null; // Reset baseline - will be set on first orientation event
   hasTilted = false; // Reset tilt state
+  lastActionTime = 0; // Reset action cooldown
   showNextWord();
 
   // Start timer countdown
@@ -186,11 +189,20 @@ function handleOrientation(event) {
   // Show current status when ready
   debugInfo.textContent = `Ready! ${Math.round(beta)}° (diff: ${Math.round(tiltDiff)}°, need ${TILT_THRESHOLD}°)`;
 
+  // Check if we're in cooldown period
+  const now = Date.now();
+  if (now - lastActionTime < ACTION_COOLDOWN) {
+    const cooldownRemaining = Math.ceil((ACTION_COOLDOWN - (now - lastActionTime)) / 1000);
+    debugInfo.textContent += ` - Wait ${cooldownRemaining}s`;
+    return;
+  }
+
   // Tilt DOWN (phone top moving toward ground) = Correct
   // Beta INCREASES when tilting down from forehead position
   if (tiltDiff > TILT_THRESHOLD) {
     debugInfo.textContent = `✅ CORRECT! (tilted down ${Math.round(tiltDiff)}°)`;
     markCorrect();
+    lastActionTime = Date.now(); // Record action time
     hasTilted = true; // Prevent multiple triggers
   }
   // Tilt UP (phone top moving toward sky) = Skip
@@ -198,6 +210,7 @@ function handleOrientation(event) {
   else if (tiltDiff < -TILT_THRESHOLD) {
     debugInfo.textContent = `⏭ SKIP! (tilted up ${Math.round(Math.abs(tiltDiff))}°)`;
     skipWord();
+    lastActionTime = Date.now(); // Record action time
     hasTilted = true; // Prevent multiple triggers
   }
 }
