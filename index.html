@@ -1,28 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Heads Up Game</title>
-
-  <!-- PWA Meta Tags -->
-  <meta name="description" content="A fun party game where you guess words on your forehead" />
-  <meta name="theme-color" content="#2962ff" />
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- iOS Meta Tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Heads Up" />
-
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="app">
-    <h1>Heads Up</h1>
-    <div class="subtitle">Tilt your phone to play! Down = Correct, Up = Skip</div>
-
-    <div class="top-bar">
+    <!-- Screen 1: Topic Selection -->
+    <div id="screen-topic">
       <div class="settings-group">
         <label for="category">Category:</label>
         <select id="category">
@@ -31,21 +11,37 @@
           <option value="food">Food</option>
         </select>
       </div>
+      <button id="nextToDifficultyBtn">Next</button>
+    </div>
 
-      <div class="settings-group">
-        <label for="timer">Timer:</label>
-        <select id="timer">
-          <option value="30">30 seconds</option>
-          <option value="60" selected>60 seconds</option>
-          <option value="120">2 minutes</option>
-        </select>
-      </div>
-
+    <!-- Screen 2: Difficulty Selection -->
+    <div id="screen-difficulty" style="display:none">
       <div class="settings-group">
         <label for="difficulty">Difficulty:</label>
         <select id="difficulty">
           <option value="easy">Easy</option>
           <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <button id="startBtn">Start</button>
+    </div>
+
+    <!-- Screen 3: Game Screen -->
+    <div id="screen-game" style="display:none">
+      <div id="wordCard" class="card">
+        <span id="wordText">Press "Start" to begin</span>
+      </div>
+      <div class="buttons">
+        <button id="correctBtn" class="round" disabled>705 Correct</button>
+        <button id="skipBtn" class="round" disabled>3ed Skip</button>
+      </div>
+      <div class="info-row">
+        <span>Time: <span id="timeDisplay">014</span></span>
+        <span>Score: <span id="scoreDisplay">0</span></span>
+      </div>
+      <div class="debug-info" id="debugInfo" style="font-size: 0.8rem; color: #999; text-align: center; margin-top: 8px;"></div>
+    </div>
           <option value="hard">Hard</option>
         </select>
       </div>

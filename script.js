@@ -17,7 +17,6 @@ const WORDS = {
 };
 
 const categorySelect = document.getElementById("category");
-const timerSelect = document.getElementById("timer");
 const difficultySelect = document.getElementById("difficulty");
 const startBtn = document.getElementById("startBtn");
 const wordText = document.getElementById("wordText");
@@ -26,6 +25,10 @@ const skipBtn = document.getElementById("skipBtn");
 const scoreDisplay = document.getElementById("scoreDisplay");
 const timeDisplay = document.getElementById("timeDisplay");
 const debugInfo = document.getElementById("debugInfo");
+const nextToDifficultyBtn = document.getElementById("nextToDifficultyBtn");
+const screenTopic = document.getElementById("screen-topic");
+const screenDifficulty = document.getElementById("screen-difficulty");
+const screenGame = document.getElementById("screen-game");
 
 let wordsForRound = [];
 let currentIndex = 0;
@@ -39,6 +42,8 @@ let lastActionTime = 0; // Timestamp of last action (correct/skip)
 const TILT_THRESHOLD = 50; // degrees needed to trigger action
 const RETURN_THRESHOLD = 15; // degrees - must return this close to baseline to reset
 const ACTION_COOLDOWN = 3000; // 3 seconds in milliseconds
+const INITIAL_TIME = 60; // Always 60 seconds
+const CORRECT_BONUS = 3; // Add 3 seconds on correct
 
 function shuffle(array) {
   return array
@@ -48,9 +53,13 @@ function shuffle(array) {
 }
 
 async function startRound() {
+  // Hide all screens, show game screen
+  screenTopic.style.display = 'none';
+  screenDifficulty.style.display = 'none';
+  screenGame.style.display = '';
+
   const category = categorySelect.value;
   const difficulty = difficultySelect.value;
-  const timerDuration = parseInt(timerSelect.value);
 
   // Get words based on category and difficulty
   wordsForRound = shuffle(WORDS[category][difficulty].slice());
@@ -59,7 +68,7 @@ async function startRound() {
   scoreDisplay.textContent = score;
 
   // Initialize timer
-  timeRemaining = timerDuration;
+  timeRemaining = INITIAL_TIME;
   updateTimeDisplay();
 
   // Request motion permission on iOS 13+
@@ -86,10 +95,6 @@ async function startRound() {
 
   correctBtn.disabled = false;
   skipBtn.disabled = false;
-  startBtn.disabled = true;
-  categorySelect.disabled = true;
-  timerSelect.disabled = true;
-  difficultySelect.disabled = true;
 }
 
 function showNextWord() {
@@ -103,6 +108,8 @@ function showNextWord() {
 function markCorrect() {
   score++;
   scoreDisplay.textContent = score;
+  timeRemaining += CORRECT_BONUS;
+  updateTimeDisplay();
   showNextWord();
 }
 
@@ -133,13 +140,15 @@ function endGame() {
 
   correctBtn.disabled = true;
   skipBtn.disabled = true;
-  startBtn.disabled = false;
-  categorySelect.disabled = false;
-  timerSelect.disabled = false;
-  difficultySelect.disabled = false;
 
   wordText.textContent = `Game Over! Final Score: ${score}`;
   debugInfo.textContent = '';
+
+  // After 3 seconds, return to topic select screen
+  setTimeout(() => {
+    screenGame.style.display = 'none';
+    screenTopic.style.display = '';
+  }, 3000);
 }
 
 // Handle device orientation for tilt controls
@@ -218,6 +227,11 @@ function handleOrientation(event) {
 // Add motion listener
 window.addEventListener('deviceorientation', handleOrientation);
 
+// Multi-screen navigation
+nextToDifficultyBtn.addEventListener("click", () => {
+  screenTopic.style.display = 'none';
+  screenDifficulty.style.display = '';
+});
 startBtn.addEventListener("click", startRound);
 correctBtn.addEventListener("click", markCorrect);
 skipBtn.addEventListener("click", skipWord);
