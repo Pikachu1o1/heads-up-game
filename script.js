@@ -1,8 +1,8 @@
 const WORDS = {
   animals: {
-    easy: ["dog", "cat", "bird", "fish", "cow", "pig"],
-    medium: ["elephant", "lion", "giraffe", "panda", "zebra", "monkey"],
-    hard: ["platypus", "armadillo", "narwhal", "axolotl", "capybara", "lemur"]
+    easy: ["dog", "cat", "bird", "fish", "cow", "pig", "mouse", "sheep", "goat", "duck"],
+    medium: ["elephant", "lion", "giraffe", "panda", "zebra", "monkey", "kangaroo", "hippo", "rhino", "wolf"],
+    hard: ["platypus", "armadillo", "narwhal", "axolotl", "capybara", "lemur", "okapi", "quokka", "pangolin", "tarsier"]
   },
   movies: {
     easy: ["Frozen", "Shrek", "Cars", "Up", "Brave", "Moana"],
